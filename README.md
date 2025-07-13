@@ -82,6 +82,20 @@ Your Slack app should now be running and connected to your Slack workspace!
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### Migrations
+
+If you make changes to the database schema, please create a migration file using:
+
+```
+alembic revision --autogenerate -m "Your migration message"
+```
+
+Then apply the migration with:
+
+```
+alembic upgrade head
+```
+
 ## License
 
 This project is licensed under the MIT License.
