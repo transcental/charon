@@ -1,13 +1,13 @@
 from slack_sdk.web.async_client import AsyncWebClient
 
-from charon.utils.config import config
+from charon.config import config
 
 
 async def send_heartbeat(
     heartbeat: str, messages: list[str] = [], client: AsyncWebClient | None = None
 ):
     if not client:
-        from charon.utils.env import env
+        from charon.env import env
 
         client = env.slack_client
     if config.slack.heartbeat_channel:

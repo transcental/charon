@@ -1,4 +1,4 @@
-async def generate_api_key():
+def generate_api_key():
     """
     Generate a new API key for the program.
     This is a placeholder function and should be replaced with actual key generation logic.

@@ -1,10 +1,10 @@
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
+from charon.env import env
 from charon.events.buttons.approve_reject_program import approve_reject_program_btn
 from charon.events.commands.new_program import new_invite_program_cmd
 from charon.events.views.new_program import new_invite_program_modal
-from charon.utils.env import env
 
 app = env.app
 

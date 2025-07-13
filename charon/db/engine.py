@@ -1,15 +1,26 @@
-from sqlalchemy import make_url
-from sqlalchemy.ext.asyncio import create_async_engine
-
-from charon.utils.config import config
+from piccolo.engine import engine_finder
+from piccolo.engine import PostgresEngine
 
 
 async def connect():
     """
-    Return an SQLAlchemy async engine.
+    Open a connection to the database.
     """
+    engine = engine_finder()
+    if engine is None:
+        raise ValueError("No engine found. Please check your configuration.")
+    if not isinstance(engine, PostgresEngine):
+        raise ValueError("The engine is not a PostgresEngine instance.")
+    await engine.start_connection_pool()
 
-    connection_string = make_url(config.database_url.encoded_string())
-    connection_string = connection_string.set(drivername="postgresql+asyncpg")
 
-    return create_async_engine(connection_string)
+async def disconnect():
+    """
+    Close the connection to the database.
+    """
+    engine = engine_finder()
+    if engine is None:
+        raise ValueError("No engine found. Please check your configuration.")
+    if not isinstance(engine, PostgresEngine):
+        raise ValueError("The engine is not a PostgresEngine instance.")
+    await engine.close_connection_pool()

@@ -4,8 +4,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from charon.utils.config import config
-from charon.utils.env import env
+from charon.config import config
+from charon.env import env
 from charon.utils.slack import app as slack_app
 
 req_handler = AsyncSlackRequestHandler(slack_app)

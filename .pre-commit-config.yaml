@@ -3,13 +3,11 @@ repos:
     rev: v3.14.0
     hooks:
       - id: reorder-python-imports
-        exclude: ^alembic/
+        exclude: piccolo_app\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.6
     hooks:
       - id: ruff
         args: [--fix]
-        exclude: ^alembic/
       - id: ruff-format
-        exclude: ^alembic/

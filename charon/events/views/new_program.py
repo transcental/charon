@@ -1,22 +1,20 @@
+import logging
 import re
 
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
-from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from charon.utils.config import config
-from charon.utils.env import env
+from charon.config import config
+from charon.db.tables import Person
+from charon.db.tables import Program
 from charon.utils.logging import send_heartbeat
-from charon.utils.models import Program
-from charon.utils.models import User
-from charon.utils.models import UserProgramLink
 from charon.views.modals.new_program_submitted import get_new_program_submitted_modal
 
+logger = logging.getLogger(__name__)
 
-async def new_invite_program_modal(ack: AsyncAck, event: dict, client: AsyncWebClient):
-    view = event["view"]
+
+async def new_invite_program_modal(ack: AsyncAck, body: dict, client: AsyncWebClient):
+    view = body["view"]
     values = view["state"]["values"]
     program_name = values["program_name"]["program_name"]["value"]
     program_managers = values["program_managers"]["program_managers"]["selected_users"]
@@ -29,7 +27,7 @@ async def new_invite_program_modal(ack: AsyncAck, event: dict, client: AsyncWebC
     docs_read = "docs" in [c["value"] for c in checkboxes]
     verification_required = "verification" in [c["value"] for c in checkboxes]
 
-    user_id = event["user"]["id"]
+    user_id = body["user"]["id"]
     errors = {}
 
     if not program_name:
@@ -62,84 +60,89 @@ async def new_invite_program_modal(ack: AsyncAck, event: dict, client: AsyncWebC
         await ack(response_action="errors", errors=errors)
         return
 
-    program = Program(
+    unset_program = Program(
         name=program_name,
         mcg_channels=mcg_channels,
         full_channels=full_channels,
+        verification_required=verification_required,
         webhook=webhook,
         xoxc_token=xoxc_token or None,
         xoxd_token=xoxd_token or None,
-        verification_required=verification_required,
         approved=False,
     )
-    async with AsyncSession(env.db) as session:
-        session.add(program)
-        await session.commit()
-        await session.refresh(program)
+    res = await Program.insert(unset_program)
+    id = res[0]["id"]
+    program = await Program.objects().where(Program.id == id).first()
 
-        for manager_slack_id in program_managers:
-            stmt = insert(User).values(slack_id=manager_slack_id)
-            stmt = stmt.on_conflict_do_nothing(index_elements=["slack_id"])
-            await session.execute(stmt)
-
-            stmt = select(User).where(User.slack_id == manager_slack_id)
-            result = await session.execute(stmt)
-            user = result.scalar_one()
-
-            stmt = insert(UserProgramLink).values(
-                user_id=user.id, program_id=program.id
-            )
-            stmt = stmt.on_conflict_do_nothing(index_elements=["user_id", "program_id"])
-            await session.execute(stmt)
-
-        program_id = program.id
-        await session.commit()
-
-        await send_heartbeat(
-            f":neodog_nom_stick: New program created: {program_name} (ID: {program_id})",
-            client=client,
-        )
-        new_view = get_new_program_submitted_modal()
+    if not isinstance(program, Program):
         await ack(
-            {
-                "response_action": "update",
-                "view": new_view,
-            }
+            response_action="errors",
+            errors={"program_name": "Failed to create program. Please try again."},
         )
-        text = f"""
-New program created: *{program_name}* (ID: {program_id})
+        return
+
+    managers = await Person.objects().where(Person.slack_id.is_in(program_managers))
+    if not managers or len(managers) != len(program_managers):
+        uncreated_managers = [
+            slack_id
+            for slack_id in program_managers
+            if slack_id not in [m.slack_id for m in managers]
+        ]
+        logger.debug(
+            f"Some program managers do not exist in the database: {uncreated_managers}"
+        )
+        managers = [Person(slack_id=slack_id) for slack_id in uncreated_managers]
+        await Person.insert(*managers)
+        managers = await Person.objects().where(Person.slack_id.is_in(program_managers))
+
+    for manager in managers:
+        await manager.add_m2m(program, m2m=Person.programs)
+
+    await send_heartbeat(
+        f":neodog_nom_stick: New program created: {program_name} (ID: {program.id})",
+        client=client,
+    )
+
+    text = f"""
+New program created: *{program_name}* (ID: {program.id})
 Managers: {", ".join(f"<@{manager_slack_id}>" for manager_slack_id in program_managers)}
 MCG Channels: {", ".join(f"<#{channel}>" for channel in mcg_channels)}
 Full Channels: {", ".join(f"<#{channel}>" for channel in full_channels)}
 Verification Required: {"Yes" if verification_required else "No"}
 Webhook: {webhook}
 Custom User: {"Yes" if xoxc_token and xoxd_token else "No"}
-        """
-        blocks = [
-            {"type": "section", "text": {"type": "mrkdwn", "text": text}},
-            {"type": "divider"},
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Approve"},
-                        "style": "primary",
-                        "action_id": "approve_program",
-                        "value": str(program_id),
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Reject"},
-                        "style": "danger",
-                        "action_id": "reject_program",
-                        "value": str(program_id),
-                    },
-                ],
-            },
-        ]
-        await client.chat_postMessage(
-            channel=config.slack.applications_channel,
-            blocks=blocks,
-            text=f"New program created: {program_name}",
-        )
+    """
+    blocks = [
+        {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+        {"type": "divider"},
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Approve"},
+                    "style": "primary",
+                    "action_id": "approve_program",
+                    "value": str(program.id),
+                },
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Reject"},
+                    "style": "danger",
+                    "action_id": "reject_program",
+                    "value": str(program.id),
+                },
+            ],
+        },
+    ]
+    await client.chat_postMessage(
+        channel=config.slack.applications_channel,
+        blocks=blocks,
+        text=f"New program created: {program_name}",
+        unfurl_links=False,
+        unfurl_media=False,
+    )
+
+    await client.views_open(
+        trigger_id=body["trigger_id"], view=get_new_program_submitted_modal()
+    )

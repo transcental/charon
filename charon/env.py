@@ -5,18 +5,17 @@ from time import time
 from aiohttp import ClientSession
 from slack_bolt.async_app import AsyncApp
 from slack_sdk.web.async_client import AsyncWebClient
-from sqlalchemy.ext.asyncio import AsyncEngine
 from starlette.applications import Starlette
 
+from charon.config import config
 from charon.db.engine import connect
-from charon.utils.config import config
+from charon.db.engine import disconnect
 from charon.utils.logging import send_heartbeat
 
 logger = logging.getLogger(__name__)
 
 
 class Environment:
-    db: AsyncEngine
     slack_client: AsyncWebClient
     http: ClientSession
     app = AsyncApp(
@@ -29,10 +28,8 @@ class Environment:
         logger.debug("Entering environment context")
         self.http = ClientSession()
         self.slack_client = AsyncWebClient(token=config.slack.bot_token)
-        self.db = await connect()
 
-        async with self.db.begin() as conn:
-            await conn.exec_driver_sql("SELECT 'hello, world!'")
+        await connect()
 
         handler = None
         if config.slack.app_token:
@@ -62,7 +59,7 @@ class Environment:
             logger.debug("Stopping Socket Mode handler")
             await handler.close_async()
 
-        await self.db.dispose()
+        await disconnect()
         await self.http.close()
 
 

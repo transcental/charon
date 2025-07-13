@@ -3,7 +3,7 @@ import logging
 
 import uvicorn
 
-from charon.utils.config import config
+from charon.config import config
 
 try:
     import uvloop
