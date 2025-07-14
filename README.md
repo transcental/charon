@@ -1,8 +1,14 @@
-# Slack Template
+# Charon
 
-This is a Slack template for creating a great Slack app using Python and Starlette.
+Charon is an API for inviting new users to a Slack workspace from various websites. It aims to provide a centralised system to manage invites.
 
-## Prerequisites
+## Usage
+
+Please see the [docs](docs/README.md) for a detailed guide on how to implement Charon into your program
+
+## Running locally
+
+### Prerequesites
 
 - Python (3.13 or later)
 - uv
@@ -23,8 +29,8 @@ This is a Slack template for creating a great Slack app using Python and Starlet
 1. Clone the repository:
 
    ```
-   git clone https://github.com/your-repo/slack-template.git
-   cd professor-bloom
+   git clone https://github.com/transcental/charon.git
+   cd charon
    ```
 
 2. Install dependencies:

@@ -24,12 +24,13 @@ async def approve_reject_program_btn(
     user_id = body["user"]["id"]
 
     if approved:
-        await Program.update(
-            {Program.approved: True, Program.api_key: generate_api_key()}
-        ).where(Program.id == int(value))
         program = await Program.objects().where(Program.id == int(value)).first()
         if isinstance(program, Program):
             if not program.approved:
+                api_key = generate_api_key()
+                await Program.update(
+                    {Program.approved: True, Program.api_key: api_key}
+                ).where(Program.id == int(value))
                 managers = await program.get_m2m(Program.managers)
                 logger.debug(f"Program {program.name} approved by {user_id}")
                 await send_heartbeat(f"<@{user_id}> approved program {program.name}")
@@ -39,14 +40,14 @@ async def approve_reject_program_btn(
                             channel=manager.slack_id,
                             text=f":white_check_mark: *{program.name}* has been approved by <@{user_id}>! :tada:\n\n"
                             f"Your API Key is below, keep it safe!\n"
-                            f"`{program.api_key}`",
+                            f"`{api_key}`",
                         )
             else:
                 logger.error(f"Program {program.name} already approved")
                 await env.slack_client.chat_postEphemeral(
                     user=user_id,
                     channel=body["channel"]["id"],
-                    text=f":x: *{program.name}* has already been approved or does not exist.",
+                    text=f":x: *{program.name}* has already been approved",
                 )
         else:
             logger.error(f"Program with ID {value} does not exist")

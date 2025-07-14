@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 
 from piccolo.columns import Boolean
 from piccolo.columns import ForeignKey
@@ -6,6 +7,7 @@ from piccolo.columns import JSON
 from piccolo.columns import LazyTableReference
 from piccolo.columns import M2M
 from piccolo.columns import Serial
+from piccolo.columns import Timestamp
 from piccolo.columns import Varchar
 from piccolo.table import Table
 
@@ -15,6 +17,7 @@ class SignupStage(enum.Enum):
     ACCEPTED = "accepted"
     JOINED = "joined"
     DEACTIVATED = "deactivated"
+    ERRORED = "errored"
 
 
 class Person(Table):
@@ -23,6 +26,9 @@ class Person(Table):
     admin = Boolean(default=False)
 
     programs = M2M(LazyTableReference("PersonProgramLink", module_path=__name__))
+
+    created_at = Timestamp(default=datetime.now)
+    updated_at = Timestamp(auto_update=datetime.now)
 
 
 class Program(Table):
@@ -39,21 +45,33 @@ class Program(Table):
 
     managers = M2M(LazyTableReference("PersonProgramLink", module_path=__name__))
 
+    created_at = Timestamp(default=datetime.now)
+    updated_at = Timestamp(auto_update=datetime.now)
+
 
 class PersonProgramLink(Table):
     user_id = ForeignKey(Person)
     program_id = ForeignKey(Program)
+
+    created_at = Timestamp(default=datetime.now)
+    updated_at = Timestamp(auto_update=datetime.now)
 
 
 class Settings(Table):
     id = Serial(primary_key=True)
     global_verification = Boolean(default=False)
 
+    created_at = Timestamp(default=datetime.now)
+    updated_at = Timestamp(auto_update=datetime.now)
+
 
 class Signup(Table):
     id = Serial(primary_key=True)
     slack_id = Varchar(null=True)
-    status = Varchar(choices=SignupStage, index=True)
+    status = Varchar(choices=SignupStage, index=True, default=SignupStage.INVITED)
     email = Varchar(index=True, unique=True)
     ip = Varchar(null=True, index=True)
     program_id = ForeignKey(Program)
+
+    created_at = Timestamp(default=datetime.now)
+    updated_at = Timestamp(auto_update=datetime.now)

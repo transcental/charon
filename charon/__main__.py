@@ -17,7 +17,7 @@ logging.basicConfig(level="DEBUG" if config.environment != "production" else "IN
 
 def start():
     uvicorn.run(
-        "charon.utils.starlette:app",
+        "charon.utils.app:app",
         host="0.0.0.0",
         port=config.port,
         log_level="info" if config.environment != "production" else "warning",

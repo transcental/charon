@@ -5,9 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "aiohttp>=3.11.14",
+    "aiohttp>=3.12.14",
+    "fastapi>=0.116.1",
     "piccolo[postgres,uvloop]>=1.27.1",
     "pydantic-settings>=2.10.1",
+    "pydantic[email]>=2.11.7",
+    "pyjwt>=2.10.1",
     "python-dotenv>=1.1.0",
     "slack-bolt>=1.23.0",
     "starlette>=0.46.1",

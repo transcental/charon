@@ -3,9 +3,9 @@ import logging
 from time import time
 
 from aiohttp import ClientSession
+from fastapi import FastAPI
 from slack_bolt.async_app import AsyncApp
 from slack_sdk.web.async_client import AsyncWebClient
-from starlette.applications import Starlette
 
 from charon.config import config
 from charon.db.engine import connect
@@ -23,7 +23,7 @@ class Environment:
     )
 
     @contextlib.asynccontextmanager
-    async def enter(self, _app: Starlette):
+    async def enter(self, _app: FastAPI):
         st = time()
         logger.debug("Entering environment context")
         self.http = ClientSession()

@@ -7,8 +7,8 @@ class SlackConfig(BaseSettings):
     bot_token: str
     signing_secret: str
     app_token: str | None
-    xoxc_token: str | None
-    xoxd_token: str | None
+    xoxc_token: str
+    xoxd_token: str
     heartbeat_channel: str | None = None
     applications_channel: str
 
@@ -19,6 +19,7 @@ class Config(BaseSettings):
     database_url: PostgresDsn
     environment: str = "development"
     port: int = 3000
+    secret_key: str
 
 
 config = Config()  # type: ignore
