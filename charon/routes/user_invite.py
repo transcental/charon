@@ -28,8 +28,8 @@ async def invite_user(data: UserInviteRequest, program: Program) -> bool:
     Handle user invitation requests.
     """
 
-    xoxd = program.xoxd_token or config.slack.xoxd_token
-    xoxc = program.xoxc_token or config.slack.xoxc_token
+    xoxd = (program.xoxd_token or config.slack.xoxd_token).strip()
+    xoxc = (program.xoxc_token or config.slack.xoxc_token).strip()
     xoxd_token = quote(xoxd)
     channels: list[str] = (
         data.channels if data.channels else json.loads(program.mcg_channels)
