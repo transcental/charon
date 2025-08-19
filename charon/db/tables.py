@@ -14,7 +14,7 @@ from piccolo.table import Table
 
 class SignupStage(enum.Enum):
     INVITED = "invited"
-    ACCEPTED = "accepted"
+    PROMOTED = "promoted"
     JOINED = "joined"
     DEACTIVATED = "deactivated"
     ERRORED = "errored"

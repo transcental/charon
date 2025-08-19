@@ -1,10 +1,11 @@
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
+from charon.actions.buttons.approve_reject_program import approve_reject_program_btn
+from charon.actions.commands.new_program import new_invite_program_cmd
+from charon.actions.events.team_join import handle_team_join
+from charon.actions.views.new_program import new_invite_program_modal
 from charon.env import env
-from charon.events.buttons.approve_reject_program import approve_reject_program_btn
-from charon.events.commands.new_program import new_invite_program_cmd
-from charon.events.views.new_program import new_invite_program_modal
 
 app = env.app
 
@@ -27,3 +28,11 @@ async def approve_reject_program(
 ):
     await ack()
     await approve_reject_program_btn(ack, body, client, action)
+
+
+@app.event("team_join")
+async def team_join_event(client: AsyncWebClient, event: dict):
+    """
+    Handle the team_join event to welcome new users.
+    """
+    await handle_team_join(client, event)

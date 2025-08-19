@@ -4,3 +4,5 @@ from .auth import security
 from .health import health
 from .user_invite import invite_user
 from .user_invite import UserInviteRequest
+from .user_promote import promote_user
+from .user_promote import UserPromoteRequest

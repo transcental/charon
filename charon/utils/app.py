@@ -11,8 +11,10 @@ from charon.env import env
 from charon.routes import check_auth
 from charon.routes import health
 from charon.routes import invite_user
+from charon.routes import promote_user
 from charon.routes import security
 from charon.routes import UserInviteRequest
+from charon.routes import UserPromoteRequest
 from charon.utils.slack import app as slack_app
 
 req_handler = AsyncSlackRequestHandler(slack_app)
@@ -40,3 +42,12 @@ async def user_invite(
 ):
     program = await check_auth(credentials)
     return await invite_user(req, program)
+
+
+@app.post("/user/promote")
+async def user_promote(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    req: UserPromoteRequest,
+):
+    program = await check_auth(credentials)
+    return await promote_user(req, program)

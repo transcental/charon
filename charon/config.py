@@ -1,3 +1,4 @@
+from pydantic import model_validator
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
@@ -9,6 +10,7 @@ class SlackConfig(BaseSettings):
     app_token: str | None
     xoxc_token: str
     xoxd_token: str
+    team_id: str
     heartbeat_channel: str | None = None
     applications_channel: str
 
@@ -20,6 +22,17 @@ class Config(BaseSettings):
     environment: str = "development"
     port: int = 3000
     secret_key: str
+    identity_base_url: str = ""
+
+    @model_validator(mode="after")
+    def set_identity_base_url(self):
+        if not self.identity_base_url:
+            self.identity_base_url = (
+                "https://identity.hackclub.com"
+                if self.environment != "development"
+                else "https://idv-staging.a.hackclub.dev"
+            )
+        return self
 
 
 config = Config()  # type: ignore
