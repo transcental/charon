@@ -121,7 +121,12 @@ async def promote_user(data: UserPromoteRequest, program: Program) -> JSONRespon
                     "message": f"Signup not found for user {data.id}",
                 },
             )
-        # signup.status = SignupStage.PROMOTED
+
+        await Signup.update(
+            {Signup.status: SignupStage.PROMOTED, Signup.slack_id: data.id}
+            if ok
+            else {Signup.status: SignupStage.ERRORED, Signup.slack_id: data.id}
+        ).where(Signup.id == signup.id)
 
         return JSONResponse(
             status_code=200 if ok else 422,
