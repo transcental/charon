@@ -9,8 +9,8 @@ import numpy as np
 from charon.db.tables import Person
 from charon.db.tables import Program
 from charon.db.tables import Signup
+from charon.utils.bucky import upload_file
 from charon.utils.graphs.stacked_bar import generate_stacked_bar_chart
-from charon.utils.litterbox import upload_litter
 from charon.utils.time import is_day
 
 STATUS_COLOURS = {
@@ -92,10 +92,9 @@ async def generate_pie(
         b, bbox_inches="tight", pad_inches=0.1, dpi=300, transparent=False, format="png"
     )
 
-    url = await upload_litter(
+    url = await upload_file(
         file=b.getvalue(),
         filename="join_status.png",
-        expiry="1h",
         content_type="image/png",
     )
 
