@@ -101,6 +101,7 @@ async def new_invite_program_modal(ack: AsyncAck, body: dict, client: AsyncWebCl
     await send_heartbeat(
         f":neodog_nom_stick: New program created: {program_name} (ID: {program.id})",
         client=client,
+        production=True,
     )
 
     text = f"""

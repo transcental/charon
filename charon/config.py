@@ -13,6 +13,7 @@ class SlackConfig(BaseSettings):
     team_id: str
     heartbeat_channel: str | None = None
     applications_channel: str
+    maintainer_id: str
 
 
 class Config(BaseSettings):

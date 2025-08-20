@@ -4,8 +4,13 @@ from charon.config import config
 
 
 async def send_heartbeat(
-    heartbeat: str, messages: list[str] = [], client: AsyncWebClient | None = None
+    heartbeat: str,
+    messages: list[str] = [],
+    client: AsyncWebClient | None = None,
+    production: bool = False,
 ):
+    if not production and config.environment == "production":
+        return
     if not client:
         from charon.env import env
 

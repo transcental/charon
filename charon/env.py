@@ -49,6 +49,7 @@ class Environment:
         await send_heartbeat(
             ":neodog_nom_stick: beep boop! online!",
             client=self.slack_client,
+            production=True,
         )
 
         yield

@@ -33,7 +33,9 @@ async def approve_reject_program_btn(
                 ).where(Program.id == int(value))
                 managers = await program.get_m2m(Program.managers)
                 logger.debug(f"Program {program.name} approved by {user_id}")
-                await send_heartbeat(f"<@{user_id}> approved program {program.name}")
+                await send_heartbeat(
+                    f"<@{user_id}> approved program {program.name}", production=True
+                )
                 for manager in managers:
                     if isinstance(manager, Person):
                         await env.slack_client.chat_postMessage(
@@ -52,7 +54,8 @@ async def approve_reject_program_btn(
         else:
             logger.error(f"Program with ID {value} does not exist")
             await send_heartbeat(
-                f"<@{user_id}> attempted to approve non-existent program with ID {value}"
+                f"<@{user_id}> attempted to approve non-existent program with ID {value}",
+                production=True,
             )
             await env.slack_client.chat_postEphemeral(
                 user=user_id,
@@ -71,7 +74,9 @@ async def approve_reject_program_btn(
                     )
 
             logger.debug(f"Program {program.name} rejected by {user_id}")
-            await send_heartbeat(f"<@{user_id}> rejected program {program.name}")
+            await send_heartbeat(
+                f"<@{user_id}> rejected program {program.name}", production=True
+            )
             await Program.delete().where(Program.id == int(value))
 
     message = f"_*{'Approved' if approved else 'Rejected'}* by <@{user_id}>_"

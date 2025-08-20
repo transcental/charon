@@ -71,7 +71,7 @@ class Signup(Table):
     status = Varchar(choices=SignupStage, index=True, default=SignupStage.INVITED)
     email = Varchar(index=True, unique=True)
     ip = Varchar(null=True, index=True)
-    program_id = ForeignKey(Program)
+    program_id = ForeignKey(Program, null=True)
 
     created_at = Timestamp(default=datetime.now)
     updated_at = Timestamp(auto_update=datetime.now)

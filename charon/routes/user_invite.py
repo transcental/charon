@@ -60,6 +60,7 @@ async def invite_user(data: UserInviteRequest, program: Program) -> bool:
         await send_heartbeat(
             f":neodog_nom_stick: User {data.email} invited to channels {channels_str} for program {program.name}",
             [f"```{response_json}```"],
+            production=True,
         )
 
         ok = True
@@ -70,6 +71,7 @@ async def invite_user(data: UserInviteRequest, program: Program) -> bool:
             await send_heartbeat(
                 f":neodog_nom_stick: Failed to invite user {data.email} to channels {channels_str} for program {program.name}",
                 [f"```{response_json}```"],
+                production=True,
             )
             ok = False
 

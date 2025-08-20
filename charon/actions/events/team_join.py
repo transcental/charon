@@ -34,12 +34,29 @@ async def handle_team_join(client: AsyncWebClient, event: dict):
 
     # Check if the user is already in the database
     existing_user = await Signup.objects().where(Signup.email == email).first()
+
+    # If user wasn't invited through Charon, create a record for direct join tracking
     if not existing_user:
-        logger.info(f"User {email} not found.")
+        logger.info(
+            f"User {email} joined directly (not through Charon). Creating tracking record."
+        )
+        existing_user = Signup(
+            email=email,
+            slack_id=user_id,
+            status=SignupStage.JOINED
+            if user.get("is_restricted")
+            else SignupStage.PROMOTED,
+            program_id=None,
+        )
+        await existing_user.save()
+
         return
 
-    user_id = user.get("id")
-    if not user_id:
+    # For users who were invited through Charon, continue with the existing flow
+    if existing_user.program_id is None:
+        logger.error(
+            f"This should not happen - user {email} has no program_id but was found in database"
+        )
         return
 
     program = (
@@ -80,6 +97,6 @@ async def handle_team_join(client: AsyncWebClient, event: dict):
     await Signup.update(
         {
             "status": SignupStage.JOINED,
-            "slack_user_id": user_id,
+            "slack_id": user_id,
         }
     ).where(Signup.id == existing_user.id)

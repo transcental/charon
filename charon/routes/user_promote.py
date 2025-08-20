@@ -98,6 +98,7 @@ async def promote_user(data: UserPromoteRequest, program: Program) -> JSONRespon
         await send_heartbeat(
             f":neodog_nom_stick: User {data.id} promoted by program {program.name}",
             [f"```{response_json}```"],
+            production=True,
         )
 
         ok = True
@@ -108,6 +109,7 @@ async def promote_user(data: UserPromoteRequest, program: Program) -> JSONRespon
             await send_heartbeat(
                 f":neodog_nom_stick: Failed to promote user {data.id} to channels {channels_str} for program {program.name}",
                 [f"```{response_json}```"],
+                production=True,
             )
             ok = False
 
