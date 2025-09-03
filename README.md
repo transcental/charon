@@ -1,5 +1,8 @@
 # Charon
 
+> [!WARNING]
+> This repository has been archived in favour of [hackclub/charon](https://github.com/hackclub/charon).
+
 Charon is an API for inviting new users to a Slack workspace from various websites. It aims to provide a centralised system to manage invites.
 
 ## Usage
